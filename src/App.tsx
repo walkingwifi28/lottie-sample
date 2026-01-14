@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState, useRef } from 'react';
 import { FileUploader } from './components/FileUploader';
 import { LottiePlayer } from './components/LottiePlayer';
 import { ColorEditor } from './components/ColorEditor';
@@ -20,20 +20,50 @@ function App() {
     hasChanges,
   } = useLottieColors({ lottieJson: fileData?.rawJson ?? null });
 
+  // カラースライダーをドラッグ中かどうかを追跡
+  const [isSliderDragging, setIsSliderDragging] = useState(false);
+  // ドラッグ中に更新が保留されているかどうか
+  const hasPendingUpdate = useRef(false);
+
+  const handleSliderDragStart = useCallback(() => {
+    setIsSliderDragging(true);
+  }, []);
+
+  const handleSliderDragEnd = useCallback(() => {
+    setIsSliderDragging(false);
+  }, []);
+
   // 色が変更されたらアニメーションを更新
   const handleColorUpdate = useCallback((id: string, newColor: number[]) => {
     updateColor(id, newColor);
   }, [updateColor]);
 
-  // 色変更後にJSONを更新
+  // 色変更後にJSONを更新（ドラッグ中はスキップ）
   useEffect(() => {
     if (hasChanges) {
+      if (isSliderDragging) {
+        // ドラッグ中は更新を保留
+        hasPendingUpdate.current = true;
+      } else {
+        const modifiedJson = getModifiedJson();
+        if (modifiedJson) {
+          updateSrcFromJson(modifiedJson);
+        }
+        hasPendingUpdate.current = false;
+      }
+    }
+  }, [colors, hasChanges, getModifiedJson, updateSrcFromJson, isSliderDragging]);
+
+  // ドラッグ終了時に保留中の更新を適用
+  useEffect(() => {
+    if (!isSliderDragging && hasPendingUpdate.current && hasChanges) {
       const modifiedJson = getModifiedJson();
       if (modifiedJson) {
         updateSrcFromJson(modifiedJson);
       }
+      hasPendingUpdate.current = false;
     }
-  }, [colors, hasChanges, getModifiedJson, updateSrcFromJson]);
+  }, [isSliderDragging, hasChanges, getModifiedJson, updateSrcFromJson]);
 
   return (
     <div className="app">
@@ -65,6 +95,7 @@ function App() {
               <LottiePlayer
                 src={fileData.src}
                 title={fileData.name}
+                forcePause={isSliderDragging}
               />
               <button className="change-file-button" onClick={clearFile}>
                 別のファイルを選択
@@ -81,6 +112,8 @@ function App() {
                   onResetColor={resetColor}
                   onResetAllColors={resetAllColors}
                   hasChanges={hasChanges}
+                  onSliderDragStart={handleSliderDragStart}
+                  onSliderDragEnd={handleSliderDragEnd}
                 />
               </div>
             )}

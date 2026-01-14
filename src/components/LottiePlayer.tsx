@@ -6,16 +6,19 @@ interface LottiePlayerProps {
     src: string;
     title: string;
     onReady?: () => void;
+    forcePause?: boolean;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DotLottieInstance = any;
 
-export function LottiePlayer({ src, title, onReady }: LottiePlayerProps) {
+export function LottiePlayer({ src, title, onReady, forcePause = false }: LottiePlayerProps) {
     const dotLottieRef = useRef<DotLottieInstance>(null);
-    const [isPlaying, setIsPlaying] = useState(true);
+    const [isPlaying, setIsPlaying] = useState(false);
     const [currentFrame, setCurrentFrame] = useState(0);
     const [totalFrames, setTotalFrames] = useState(0);
+    // 初回ロード時のみ自動再生するフラグ
+    const isInitialLoad = useRef(true);
 
 
     const handleDotLottieRef = useCallback((dotLottie: DotLottieInstance) => {
@@ -24,6 +27,11 @@ export function LottiePlayer({ src, title, onReady }: LottiePlayerProps) {
         if (dotLottie) {
             dotLottie.addEventListener('load', () => {
                 setTotalFrames(dotLottie.totalFrames);
+                // 初回ロード時のみ自動再生
+                if (isInitialLoad.current) {
+                    dotLottie.play();
+                    isInitialLoad.current = false;
+                }
                 onReady?.();
             });
 
@@ -46,11 +54,22 @@ export function LottiePlayer({ src, title, onReady }: LottiePlayerProps) {
         }
     }, [onReady]);
 
-    // srcが変更されたらリセット
+    // srcが変更されたらフレームをリセット（再生状態は維持しない）
     useEffect(() => {
-        setIsPlaying(true);
         setCurrentFrame(0);
     }, [src]);
+
+    // forcePauseの変化を監視して一時停止
+    useEffect(() => {
+        if (forcePause) {
+            // 一時停止前の状態を確認して停止
+            const currentlyPlaying = dotLottieRef.current?.isPlaying ?? false;
+            if (currentlyPlaying) {
+                dotLottieRef.current?.pause();
+            }
+        }
+        // forcePauseが解除されても自動再生しない
+    }, [forcePause]);
 
     const handlePlayPause = useCallback(() => {
         if (isPlaying) {
@@ -74,7 +93,7 @@ export function LottiePlayer({ src, title, onReady }: LottiePlayerProps) {
                 <DotLottieReact
                     src={src}
                     loop
-                    autoplay
+                    autoplay={false}
                     style={{ width: '100%', height: '100%' }}
                     dotLottieRefCallback={handleDotLottieRef}
                 />

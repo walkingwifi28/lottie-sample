@@ -15,6 +15,8 @@ interface ColorEditorProps {
     onResetColor: (id: string) => void;
     onResetAllColors: () => void;
     hasChanges: boolean;
+    onSliderDragStart?: () => void;
+    onSliderDragEnd?: () => void;
 }
 
 export function ColorEditor({
@@ -25,6 +27,8 @@ export function ColorEditor({
     onResetColor,
     onResetAllColors,
     hasChanges,
+    onSliderDragStart,
+    onSliderDragEnd,
 }: ColorEditorProps) {
     const selectedColor = colors.find((c) => c.id === selectedColorId);
 
@@ -93,6 +97,8 @@ export function ColorEditor({
                             color={selectedColor}
                             onColorChange={(newColor) => onUpdateColor(selectedColor.id, newColor)}
                             onReset={() => onResetColor(selectedColor.id)}
+                            onSliderDragStart={onSliderDragStart}
+                            onSliderDragEnd={onSliderDragEnd}
                         />
                     </div>
                 )}

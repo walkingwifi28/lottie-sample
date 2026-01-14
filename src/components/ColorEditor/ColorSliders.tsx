@@ -12,9 +12,11 @@ interface ColorSlidersProps {
     color: LottieColor;
     onColorChange: (newColor: number[]) => void;
     onReset: () => void;
+    onSliderDragStart?: () => void;
+    onSliderDragEnd?: () => void;
 }
 
-export function ColorSliders({ color, onColorChange, onReset }: ColorSlidersProps) {
+export function ColorSliders({ color, onColorChange, onReset, onSliderDragStart, onSliderDragEnd }: ColorSlidersProps) {
     const currentHex = lottieToHex(color.current);
     const originalHex = lottieToHex(color.original);
     const textColor = getTextColor(color.current);
@@ -88,6 +90,10 @@ export function ColorSliders({ color, onColorChange, onReset }: ColorSlidersProp
                             step="0.001"
                             value={color.current[0]}
                             onChange={(e) => handleSliderChange(0, parseFloat(e.target.value))}
+                            onMouseDown={onSliderDragStart}
+                            onMouseUp={onSliderDragEnd}
+                            onTouchStart={onSliderDragStart}
+                            onTouchEnd={onSliderDragEnd}
                             className="color-slider__input"
                         />
                     </div>
@@ -118,6 +124,10 @@ export function ColorSliders({ color, onColorChange, onReset }: ColorSlidersProp
                             step="0.001"
                             value={color.current[1]}
                             onChange={(e) => handleSliderChange(1, parseFloat(e.target.value))}
+                            onMouseDown={onSliderDragStart}
+                            onMouseUp={onSliderDragEnd}
+                            onTouchStart={onSliderDragStart}
+                            onTouchEnd={onSliderDragEnd}
                             className="color-slider__input"
                         />
                     </div>
@@ -148,6 +158,10 @@ export function ColorSliders({ color, onColorChange, onReset }: ColorSlidersProp
                             step="0.001"
                             value={color.current[2]}
                             onChange={(e) => handleSliderChange(2, parseFloat(e.target.value))}
+                            onMouseDown={onSliderDragStart}
+                            onMouseUp={onSliderDragEnd}
+                            onTouchStart={onSliderDragStart}
+                            onTouchEnd={onSliderDragEnd}
                             className="color-slider__input"
                         />
                     </div>
