@@ -16,7 +16,7 @@ export function LottiePlayer({ src, title, onReady }: LottiePlayerProps) {
     const [isPlaying, setIsPlaying] = useState(true);
     const [currentFrame, setCurrentFrame] = useState(0);
     const [totalFrames, setTotalFrames] = useState(0);
-    const [isReady, setIsReady] = useState(false);
+
 
     const handleDotLottieRef = useCallback((dotLottie: DotLottieInstance) => {
         dotLottieRef.current = dotLottie;
@@ -24,7 +24,6 @@ export function LottiePlayer({ src, title, onReady }: LottiePlayerProps) {
         if (dotLottie) {
             dotLottie.addEventListener('load', () => {
                 setTotalFrames(dotLottie.totalFrames);
-                setIsReady(true);
                 onReady?.();
             });
 
@@ -51,7 +50,6 @@ export function LottiePlayer({ src, title, onReady }: LottiePlayerProps) {
     useEffect(() => {
         setIsPlaying(true);
         setCurrentFrame(0);
-        setIsReady(false);
     }, [src]);
 
     const handlePlayPause = useCallback(() => {
@@ -82,40 +80,38 @@ export function LottiePlayer({ src, title, onReady }: LottiePlayerProps) {
                 />
             </div>
 
-            {isReady && (
-                <div className="playback-controls">
-                    <button
-                        className="control-button"
-                        onClick={handlePlayPause}
-                        aria-label={isPlaying ? '一時停止' : '再生'}
-                    >
-                        {isPlaying ? (
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                                <rect x="6" y="4" width="4" height="16" rx="1" />
-                                <rect x="14" y="4" width="4" height="16" rx="1" />
-                            </svg>
-                        ) : (
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                                <polygon points="5 3 19 12 5 21 5 3" />
-                            </svg>
-                        )}
-                    </button>
+            <div className="playback-controls">
+                <button
+                    className="control-button"
+                    onClick={handlePlayPause}
+                    aria-label={isPlaying ? '一時停止' : '再生'}
+                >
+                    {isPlaying ? (
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <rect x="6" y="4" width="4" height="16" rx="1" />
+                            <rect x="14" y="4" width="4" height="16" rx="1" />
+                        </svg>
+                    ) : (
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <polygon points="5 3 19 12 5 21 5 3" />
+                        </svg>
+                    )}
+                </button>
 
-                    <div className="seek-container">
-                        <input
-                            type="range"
-                            className="seek-bar"
-                            min={0}
-                            max={totalFrames}
-                            value={currentFrame}
-                            onChange={handleSeek}
-                        />
-                        <span className="frame-info">
-                            {currentFrame} / {totalFrames}
-                        </span>
-                    </div>
+                <div className="seek-container">
+                    <input
+                        type="range"
+                        className="seek-bar"
+                        min={0}
+                        max={totalFrames}
+                        value={currentFrame}
+                        onChange={handleSeek}
+                    />
+                    <span className="frame-info">
+                        {currentFrame} / {totalFrames}
+                    </span>
                 </div>
-            )}
+            </div>
         </div>
     );
 }

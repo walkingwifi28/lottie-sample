@@ -6,22 +6,24 @@
   max-width: 480px;
   min-height: 280px;
   padding: 2rem;
-  border: 2px dashed #d1d5db;
+  border: 2px dashed rgba(167, 139, 250, 0.3);
   border-radius: 16px;
-  background-color: #fafafa;
+  background: linear-gradient(135deg, rgba(26, 26, 46, 0.8), rgba(22, 33, 62, 0.8));
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .file-uploader:hover {
-  border-color: #6366f1;
-  background-color: #f5f5ff;
+  border-color: rgba(167, 139, 250, 0.6);
+  background: linear-gradient(135deg, rgba(30, 30, 63, 0.9), rgba(26, 37, 66, 0.9));
+  box-shadow: 0 0 30px rgba(167, 139, 250, 0.1);
 }
 
 .file-uploader.drag-over {
-  border-color: #6366f1;
-  background-color: #eef2ff;
+  border-color: #a78bfa;
+  background: linear-gradient(135deg, rgba(42, 42, 90, 0.9), rgba(38, 49, 78, 0.9));
   transform: scale(1.02);
+  box-shadow: 0 0 40px rgba(167, 139, 250, 0.2);
 }
 
 .file-uploader.disabled {
@@ -42,32 +44,32 @@
 }
 
 .upload-icon {
-  color: #9ca3af;
+  color: #64748b;
   transition: color 0.2s ease;
 }
 
 .file-uploader:hover .upload-icon {
-  color: #6366f1;
+  color: #a78bfa;
 }
 
 .upload-text {
   margin: 0;
   font-size: 1rem;
-  color: #4b5563;
+  color: #94a3b8;
   line-height: 1.6;
 }
 
 .upload-hint {
   margin: 0;
   font-size: 0.875rem;
-  color: #9ca3af;
+  color: #64748b;
 }
 
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid #e5e7eb;
-  border-top-color: #6366f1;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #a78bfa;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }

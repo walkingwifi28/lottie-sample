@@ -1,9 +1,14 @@
 import { useState, useCallback } from 'react';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type LottieJson = any;
+
 export interface LottieFileData {
     name: string;
     src: string;
     type: 'json' | 'lottie';
+    /** Lottie JSONの生データ */
+    rawJson: LottieJson | null;
 }
 
 interface UseLottieFileReturn {
@@ -12,6 +17,8 @@ interface UseLottieFileReturn {
     isLoading: boolean;
     handleFile: (file: File) => Promise<void>;
     clearFile: () => void;
+    /** 変更されたJSONでsrcを更新 */
+    updateSrcFromJson: (json: LottieJson) => void;
 }
 
 /**
@@ -59,18 +66,19 @@ export function useLottieFile(): UseLottieFileReturn {
                 throw new Error('対応していないファイル形式です。.json または .lottie ファイルを選択してください。');
             }
 
+            let rawJson: LottieJson = null;
+
             // .jsonの場合はLottie形式かチェック
             if (fileType === 'json') {
                 const text = await file.text();
-                let jsonData: unknown;
 
                 try {
-                    jsonData = JSON.parse(text);
+                    rawJson = JSON.parse(text);
                 } catch {
                     throw new Error('JSONファイルの解析に失敗しました。');
                 }
 
-                if (!isValidLottieJson(jsonData)) {
+                if (!isValidLottieJson(rawJson)) {
                     throw new Error('このJSONファイルはLottie形式ではありません。');
                 }
             }
@@ -87,6 +95,7 @@ export function useLottieFile(): UseLottieFileReturn {
                 name: file.name,
                 src,
                 type: fileType,
+                rawJson,
             });
         } catch (err) {
             setError(err instanceof Error ? err.message : '不明なエラーが発生しました。');
@@ -101,11 +110,30 @@ export function useLottieFile(): UseLottieFileReturn {
         setError(null);
     }, []);
 
+    /**
+     * 変更されたJSONでsrcを更新（カラー変更時に使用）
+     */
+    const updateSrcFromJson = useCallback((json: LottieJson) => {
+        if (!fileData) return;
+
+        // JSONをData URLに変換
+        const jsonString = JSON.stringify(json);
+        const base64 = btoa(unescape(encodeURIComponent(jsonString)));
+        const newSrc = `data:application/json;base64,${base64}`;
+
+        setFileData(prev => prev ? {
+            ...prev,
+            src: newSrc,
+            // rawJson NOT updated to preserve original file content and prevent re-extraction loop
+        } : null);
+    }, [fileData]);
+
     return {
         fileData,
         error,
         isLoading,
         handleFile,
         clearFile,
+        updateSrcFromJson,
     };
 }

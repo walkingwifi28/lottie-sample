@@ -9,9 +9,9 @@
 
 .player-title {
     margin: 0;
-    font-size: 1.125rem;
+    font-size: 1rem;
     font-weight: 500;
-    color: #374151;
+    color: #94a3b8;
     text-align: center;
     word-break: break-all;
     max-width: 100%;
@@ -20,10 +20,13 @@
 .animation-container {
     width: 100%;
     aspect-ratio: 1;
-    background-color: #ffffff;
+    background: linear-gradient(135deg, #1e1e3f 0%, #2a2a5a 100%);
     border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    box-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
     overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .playback-controls {
@@ -32,9 +35,12 @@
     gap: 1rem;
     width: 100%;
     padding: 0.75rem 1rem;
-    background-color: #ffffff;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
     border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .control-button {
@@ -46,16 +52,18 @@
     padding: 0;
     border: none;
     border-radius: 50%;
-    background-color: #6366f1;
+    background: linear-gradient(135deg, #a78bfa, #818cf8);
     color: white;
     cursor: pointer;
     transition: all 0.2s ease;
     flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(167, 139, 250, 0.4);
 }
 
 .control-button:hover {
-    background-color: #4f46e5;
+    background: linear-gradient(135deg, #c4b5fd, #a78bfa);
     transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(167, 139, 250, 0.5);
 }
 
 .control-button:active {
@@ -74,7 +82,7 @@
     flex: 1;
     height: 6px;
     appearance: none;
-    background: #e5e7eb;
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 3px;
     cursor: pointer;
 }
@@ -83,10 +91,11 @@
     appearance: none;
     width: 16px;
     height: 16px;
-    background: #6366f1;
+    background: linear-gradient(135deg, #a78bfa, #818cf8);
     border-radius: 50%;
     cursor: pointer;
     transition: transform 0.15s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .seek-bar::-webkit-slider-thumb:hover {
@@ -96,7 +105,7 @@
 .seek-bar::-moz-range-thumb {
     width: 16px;
     height: 16px;
-    background: #6366f1;
+    background: linear-gradient(135deg, #a78bfa, #818cf8);
     border: none;
     border-radius: 50%;
     cursor: pointer;
@@ -104,8 +113,9 @@
 
 .frame-info {
     font-size: 0.75rem;
-    color: #9ca3af;
+    color: #64748b;
     white-space: nowrap;
     min-width: 70px;
     text-align: right;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
 }
