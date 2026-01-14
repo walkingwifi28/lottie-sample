@@ -4,10 +4,8 @@
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import type { LottieColor } from '../types/lottieColor';
+import type { LottieJson } from '../types/lottieJson';
 import { extractColorsFromLottie, applyColorsToLottie } from '../utils/lottieColorExtractor';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type LottieJson = any;
 
 interface UseLottieColorsProps {
     lottieJson: LottieJson | null;
@@ -32,13 +30,19 @@ interface UseLottieColorsReturn {
     hasChanges: boolean;
 }
 
+/**
+ * 2つの色配列が等しいかを判定（許容誤差付き）
+ */
+function areColorsEqual(color1: number[], color2: number[], tolerance = 0.001): boolean {
+    return color1.every((v, i) => Math.abs(v - color2[i]) < tolerance);
+}
+
 export function useLottieColors({ lottieJson }: UseLottieColorsProps): UseLottieColorsReturn {
     const [colors, setColors] = useState<LottieColor[]>([]);
     const [selectedColorId, setSelectedColorId] = useState<string | null>(null);
     const [originalJson, setOriginalJson] = useState<LottieJson | null>(null);
 
     // JSONが変更されたら色を抽出
-    // Note: useMemo was used incorrectly for side effects. Switched to useEffect.
     useEffect(() => {
         if (lottieJson) {
             const extractedColors = extractColorsFromLottie(lottieJson);
@@ -89,33 +93,30 @@ export function useLottieColors({ lottieJson }: UseLottieColorsProps): UseLottie
         );
     }, []);
 
+    // 変更された色のリストをキャッシュ（hasChangesとgetModifiedJsonで共有）
+    const changedColors = useMemo(() =>
+        colors.filter(color => !areColorsEqual(color.original, color.current)),
+        [colors]
+    );
+
+    // 変更があるかどうか
+    const hasChanges = changedColors.length > 0;
+
     // 変更を適用したJSONを取得
     const getModifiedJson = useCallback((): LottieJson | null => {
         if (!originalJson) return null;
 
-        const changes = colors
-            .filter(color => {
-                // 変更があるもののみ
-                return !color.original.every((v, i) => Math.abs(v - color.current[i]) < 0.001);
-            })
-            .map(color => ({
-                targets: color.targets,
-                newColor: color.current,
-            }));
-
-        if (changes.length === 0) {
+        if (changedColors.length === 0) {
             return originalJson;
         }
 
-        return applyColorsToLottie(originalJson, changes);
-    }, [originalJson, colors]);
+        const changes = changedColors.map(color => ({
+            targets: color.targets,
+            newColor: color.current,
+        }));
 
-    // 変更があるかどうか
-    const hasChanges = useMemo(() => {
-        return colors.some(color =>
-            !color.original.every((v, i) => Math.abs(v - color.current[i]) < 0.001)
-        );
-    }, [colors]);
+        return applyColorsToLottie(originalJson, changes);
+    }, [originalJson, changedColors]);
 
     return {
         colors,
@@ -128,3 +129,4 @@ export function useLottieColors({ lottieJson }: UseLottieColorsProps): UseLottie
         hasChanges,
     };
 }
+

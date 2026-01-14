@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
-import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import { DotLottieReact, type DotLottie } from '@lottiefiles/dotlottie-react';
 import './LottiePlayer.css';
 
 interface LottiePlayerProps {
@@ -9,50 +9,91 @@ interface LottiePlayerProps {
     forcePause?: boolean;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type DotLottieInstance = any;
+// インラインスタイルを定数として定義（パフォーマンス最適化）
+const ANIMATION_CONTAINER_STYLE = { width: '100%', height: '100%' } as const;
 
 export function LottiePlayer({ src, title, onReady, forcePause = false }: LottiePlayerProps) {
-    const dotLottieRef = useRef<DotLottieInstance>(null);
+    const dotLottieRef = useRef<DotLottie | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentFrame, setCurrentFrame] = useState(0);
     const [totalFrames, setTotalFrames] = useState(0);
     // 初回ロード時のみ自動再生するフラグ
     const isInitialLoad = useRef(true);
+    // イベントリスナーを登録したかどうかを追跡
+    const listenersAttached = useRef(false);
 
+    // イベントハンドラー（安定した参照のためuseCallbackを使用）
+    const handleLoad = useCallback(() => {
+        const dotLottie = dotLottieRef.current;
+        if (!dotLottie) return;
 
-    const handleDotLottieRef = useCallback((dotLottie: DotLottieInstance) => {
+        setTotalFrames(dotLottie.totalFrames);
+        // 初回ロード時のみ自動再生
+        if (isInitialLoad.current) {
+            dotLottie.play();
+            isInitialLoad.current = false;
+        }
+        onReady?.();
+    }, [onReady]);
+
+    const handleFrame = useCallback((event: unknown) => {
+        const frameEvent = event as { currentFrame: number };
+        setCurrentFrame(Math.round(frameEvent.currentFrame));
+    }, []);
+
+    const handlePlay = useCallback(() => {
+        setIsPlaying(true);
+    }, []);
+
+    const handlePause = useCallback(() => {
+        setIsPlaying(false);
+    }, []);
+
+    const handleStop = useCallback(() => {
+        setIsPlaying(false);
+        setCurrentFrame(0);
+    }, []);
+
+    // DotLottieインスタンスのref callback
+    const handleDotLottieRef = useCallback((dotLottie: DotLottie | null) => {
+        // 前のインスタンスがあればリスナーを解除
+        if (dotLottieRef.current && listenersAttached.current) {
+            const prevDotLottie = dotLottieRef.current;
+            prevDotLottie.removeEventListener('load', handleLoad);
+            prevDotLottie.removeEventListener('frame', handleFrame);
+            prevDotLottie.removeEventListener('play', handlePlay);
+            prevDotLottie.removeEventListener('pause', handlePause);
+            prevDotLottie.removeEventListener('stop', handleStop);
+            listenersAttached.current = false;
+        }
+
         dotLottieRef.current = dotLottie;
 
+        // 新しいインスタンスにリスナーを登録
         if (dotLottie) {
-            dotLottie.addEventListener('load', () => {
-                setTotalFrames(dotLottie.totalFrames);
-                // 初回ロード時のみ自動再生
-                if (isInitialLoad.current) {
-                    dotLottie.play();
-                    isInitialLoad.current = false;
-                }
-                onReady?.();
-            });
-
-            dotLottie.addEventListener('frame', (event: { currentFrame: number }) => {
-                setCurrentFrame(Math.round(event.currentFrame));
-            });
-
-            dotLottie.addEventListener('play', () => {
-                setIsPlaying(true);
-            });
-
-            dotLottie.addEventListener('pause', () => {
-                setIsPlaying(false);
-            });
-
-            dotLottie.addEventListener('stop', () => {
-                setIsPlaying(false);
-                setCurrentFrame(0);
-            });
+            dotLottie.addEventListener('load', handleLoad);
+            dotLottie.addEventListener('frame', handleFrame);
+            dotLottie.addEventListener('play', handlePlay);
+            dotLottie.addEventListener('pause', handlePause);
+            dotLottie.addEventListener('stop', handleStop);
+            listenersAttached.current = true;
         }
-    }, [onReady]);
+    }, [handleLoad, handleFrame, handlePlay, handlePause, handleStop]);
+
+    // コンポーネントアンマウント時のクリーンアップ
+    useEffect(() => {
+        return () => {
+            const dotLottie = dotLottieRef.current;
+            if (dotLottie && listenersAttached.current) {
+                dotLottie.removeEventListener('load', handleLoad);
+                dotLottie.removeEventListener('frame', handleFrame);
+                dotLottie.removeEventListener('play', handlePlay);
+                dotLottie.removeEventListener('pause', handlePause);
+                dotLottie.removeEventListener('stop', handleStop);
+                listenersAttached.current = false;
+            }
+        };
+    }, [handleLoad, handleFrame, handlePlay, handlePause, handleStop]);
 
     // srcが変更されたらフレームをリセット（再生状態は維持しない）
     useEffect(() => {
@@ -94,7 +135,7 @@ export function LottiePlayer({ src, title, onReady, forcePause = false }: Lottie
                     src={src}
                     loop
                     autoplay={false}
-                    style={{ width: '100%', height: '100%' }}
+                    style={ANIMATION_CONTAINER_STYLE}
                     dotLottieRefCallback={handleDotLottieRef}
                 />
             </div>

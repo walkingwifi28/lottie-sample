@@ -5,6 +5,8 @@
 import type { LottieColor, TargetLocation } from '../types/lottieColor';
 import { colorToKey } from './colorConverter';
 
+// Lottie JSONは深くネストした構造を持ち、動的にプロパティにアクセスする必要があるため
+// このファイル内ではany型を使用する（公開APIの型はlottieJson.tsで定義）
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type LottieJson = any;
 

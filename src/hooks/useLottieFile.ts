@@ -1,7 +1,5 @@
 import { useState, useCallback } from 'react';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type LottieJson = any;
+import type { LottieJson } from '../types/lottieJson';
 
 export interface LottieFileData {
     name: string;
@@ -25,7 +23,7 @@ interface UseLottieFileReturn {
  * Lottie JSONファイルの簡易バリデーション
  * 必須キーの存在をチェック
  */
-function isValidLottieJson(data: unknown): boolean {
+function isValidLottieJson(data: unknown): data is LottieJson {
     if (typeof data !== 'object' || data === null) {
         return false;
     }
@@ -48,6 +46,14 @@ function getFileType(fileName: string): 'json' | 'lottie' | null {
 }
 
 /**
+ * テキストをData URLに変換
+ */
+function textToDataUrl(text: string, mimeType: string): string {
+    const base64 = btoa(unescape(encodeURIComponent(text)));
+    return `data:${mimeType};base64,${base64}`;
+}
+
+/**
  * Lottieファイルの読み込みとバリデーションを行うカスタムフック
  */
 export function useLottieFile(): UseLottieFileReturn {
@@ -66,14 +72,15 @@ export function useLottieFile(): UseLottieFileReturn {
                 throw new Error('対応していないファイル形式です。.json または .lottie ファイルを選択してください。');
             }
 
-            let rawJson: LottieJson = null;
+            let rawJson: LottieJson | null = null;
+            let src: string;
 
-            // .jsonの場合はLottie形式かチェック
             if (fileType === 'json') {
+                // JSONファイルの場合：テキストを1回だけ読み込み
                 const text = await file.text();
 
                 try {
-                    rawJson = JSON.parse(text);
+                    rawJson = JSON.parse(text) as LottieJson;
                 } catch {
                     throw new Error('JSONファイルの解析に失敗しました。');
                 }
@@ -81,15 +88,18 @@ export function useLottieFile(): UseLottieFileReturn {
                 if (!isValidLottieJson(rawJson)) {
                     throw new Error('このJSONファイルはLottie形式ではありません。');
                 }
-            }
 
-            // Data URL生成
-            const reader = new FileReader();
-            const src = await new Promise<string>((resolve, reject) => {
-                reader.onload = () => resolve(reader.result as string);
-                reader.onerror = () => reject(new Error('ファイルの読み込みに失敗しました。'));
-                reader.readAsDataURL(file);
-            });
+                // パース済みのテキストからData URLを生成（2回目のファイル読み込みを回避）
+                src = textToDataUrl(text, 'application/json');
+            } else {
+                // .lottieファイルの場合はバイナリとして読み込み
+                const reader = new FileReader();
+                src = await new Promise<string>((resolve, reject) => {
+                    reader.onload = () => resolve(reader.result as string);
+                    reader.onerror = () => reject(new Error('ファイルの読み込みに失敗しました。'));
+                    reader.readAsDataURL(file);
+                });
+            }
 
             setFileData({
                 name: file.name,
