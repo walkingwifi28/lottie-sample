@@ -1,0 +1,111 @@
+.lottie-player {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 480px;
+}
+
+.player-title {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 500;
+    color: #374151;
+    text-align: center;
+    word-break: break-all;
+    max-width: 100%;
+}
+
+.animation-container {
+    width: 100%;
+    aspect-ratio: 1;
+    background-color: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.playback-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.control-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background-color: #6366f1;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.control-button:hover {
+    background-color: #4f46e5;
+    transform: scale(1.05);
+}
+
+.control-button:active {
+    transform: scale(0.95);
+}
+
+.seek-container {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.seek-bar {
+    flex: 1;
+    height: 6px;
+    appearance: none;
+    background: #e5e7eb;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.seek-bar::-webkit-slider-thumb {
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: #6366f1;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+}
+
+.seek-bar::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+
+.seek-bar::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: #6366f1;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.frame-info {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    white-space: nowrap;
+    min-width: 70px;
+    text-align: right;
+}
