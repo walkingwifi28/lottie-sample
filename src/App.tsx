@@ -1,24 +1,32 @@
 import { useEffect, useCallback, useState, useRef } from 'react';
 import { FileUploader } from './components/FileUploader';
 import { LottiePlayer } from './components/LottiePlayer';
-import { ColorEditor } from './components/ColorEditor';
+import { ColorEditorV2 } from './components/ColorEditor';
 import { useLottieFile } from './hooks/useLottieFile';
-import { useLottieColors } from './hooks/useLottieColors';
+import { useLottieColorGroups } from './hooks/useLottieColorGroups';
 import './App.css';
 
 function App() {
   const { fileData, error, isLoading, handleFile, clearFile, updateSrcFromJson } = useLottieFile();
 
   const {
-    colors,
-    selectedColorId,
-    selectColor,
-    updateColor,
-    resetColor,
+    colorGroups,
+    selectedLayerColorId,
+    selectedGroupId,
+    isBatchEditMode,
+    selectLayerColor,
+    selectGroupForBatchEdit,
+    toggleGroupExpanded,
+    updateLayerColor,
+    updateGroupColor,
+    resetLayerColor,
+    resetGroupColor,
     resetAllColors,
     getModifiedJson,
     hasChanges,
-  } = useLottieColors({ lottieJson: fileData?.rawJson ?? null });
+    selectedLayerColor,
+    totalColorCount,
+  } = useLottieColorGroups({ lottieJson: fileData?.rawJson ?? null });
 
   // カラースライダーをドラッグ中かどうかを追跡
   const [isSliderDragging, setIsSliderDragging] = useState(false);
@@ -33,10 +41,15 @@ function App() {
     setIsSliderDragging(false);
   }, []);
 
-  // 色が変更されたらアニメーションを更新
-  const handleColorUpdate = useCallback((id: string, newColor: number[]) => {
-    updateColor(id, newColor);
-  }, [updateColor]);
+  // レイヤー色更新のハンドラー
+  const handleLayerColorUpdate = useCallback((id: string, newColor: number[]) => {
+    updateLayerColor(id, newColor);
+  }, [updateLayerColor]);
+
+  // グループ色一括更新のハンドラー
+  const handleGroupColorUpdate = useCallback((groupId: string, newColor: number[]) => {
+    updateGroupColor(groupId, newColor);
+  }, [updateGroupColor]);
 
   // 色変更後にJSONを更新（ドラッグ中はスキップ）
   useEffect(() => {
@@ -52,7 +65,7 @@ function App() {
         hasPendingUpdate.current = false;
       }
     }
-  }, [colors, hasChanges, getModifiedJson, updateSrcFromJson, isSliderDragging]);
+  }, [colorGroups, hasChanges, getModifiedJson, updateSrcFromJson, isSliderDragging]);
 
   // ドラッグ終了時に保留中の更新を適用
   useEffect(() => {
@@ -102,16 +115,24 @@ function App() {
               </button>
             </div>
 
-            {colors.length > 0 && (
+            {colorGroups.length > 0 && (
               <div className="color-editor-section">
-                <ColorEditor
-                  colors={colors}
-                  selectedColorId={selectedColorId}
-                  onSelectColor={selectColor}
-                  onUpdateColor={handleColorUpdate}
-                  onResetColor={resetColor}
-                  onResetAllColors={resetAllColors}
+                <ColorEditorV2
+                  colorGroups={colorGroups}
+                  selectedLayerColorId={selectedLayerColorId}
+                  selectedGroupId={selectedGroupId}
+                  isBatchEditMode={isBatchEditMode}
+                  selectedLayerColor={selectedLayerColor}
+                  totalColorCount={totalColorCount}
                   hasChanges={hasChanges}
+                  onToggleGroupExpanded={toggleGroupExpanded}
+                  onSelectLayerColor={selectLayerColor}
+                  onSelectGroupForBatchEdit={selectGroupForBatchEdit}
+                  onUpdateLayerColor={handleLayerColorUpdate}
+                  onUpdateGroupColor={handleGroupColorUpdate}
+                  onResetLayerColor={resetLayerColor}
+                  onResetGroupColor={resetGroupColor}
+                  onResetAllColors={resetAllColors}
                   onSliderDragStart={handleSliderDragStart}
                   onSliderDragEnd={handleSliderDragEnd}
                 />

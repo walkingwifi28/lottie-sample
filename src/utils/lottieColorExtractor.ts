@@ -2,7 +2,7 @@
  * Lottie JSONから静的カラーを抽出するユーティリティ
  */
 
-import type { LottieColor, TargetLocation } from '../types/lottieColor';
+import type { LottieColor, TargetLocation, ColorGroup, LayerColor } from '../types/lottieColor';
 import { colorToKey } from './colorConverter';
 
 // Lottie JSONは深くネストした構造を持ち、動的にプロパティにアクセスする必要があるため
@@ -284,3 +284,103 @@ export function applyColorsToLottie(
 
     return result;
 }
+
+/**
+ * レイヤー単位でグループ化された色を抽出
+ * 同じ色・タイプをColorGroupにまとめ、各レイヤーはLayerColorとして保持
+ */
+export function extractColorGroupsFromLottie(lottieJson: LottieJson): ColorGroup[] {
+    const rawColors: ExtractedColor[] = [];
+
+    if (!lottieJson || typeof lottieJson !== 'object') {
+        return [];
+    }
+
+    // メインレイヤーから抽出
+    if (Array.isArray(lottieJson.layers)) {
+        lottieJson.layers.forEach((layer: LottieJson, index: number) => {
+            extractColorsFromLayer(layer, index, rawColors);
+        });
+    }
+
+    // Assets内のprecompsも処理
+    if (Array.isArray(lottieJson.assets)) {
+        lottieJson.assets.forEach((asset: LottieJson, assetIndex: number) => {
+            if (Array.isArray(asset.layers)) {
+                asset.layers.forEach((layer: LottieJson, layerIndex: number) => {
+                    const assetColors: ExtractedColor[] = [];
+                    extractColorsFromLayer(layer, layerIndex, assetColors);
+
+                    // パスをassets配下に修正
+                    assetColors.forEach(color => {
+                        color.path = ['assets', assetIndex, ...color.path];
+                        rawColors.push(color);
+                    });
+                });
+            }
+        });
+    }
+
+    return groupColorsByLayer(rawColors);
+}
+
+/**
+ * 色をレイヤー単位でまとめ、さらに同じ色でグループ化
+ */
+function groupColorsByLayer(extractedColors: ExtractedColor[]): ColorGroup[] {
+    // まず、色とタイプでグループ化
+    const colorTypeGroups: { [key: string]: ExtractedColor[] } = {};
+
+    extractedColors.forEach(extracted => {
+        const colorKey = `${extracted.type}_${colorToKey(extracted.color)}`;
+        if (!colorTypeGroups[colorKey]) {
+            colorTypeGroups[colorKey] = [];
+        }
+        colorTypeGroups[colorKey].push(extracted);
+    });
+
+    // 各色グループ内でレイヤー単位にまとめる
+    const colorGroups: ColorGroup[] = [];
+
+    Object.entries(colorTypeGroups).forEach(([, colors]) => {
+        if (colors.length === 0) return;
+
+        const groupId = generateId();
+        const firstColor = colors[0];
+
+        // レイヤー名でグループ化
+        const layerGroups: { [layerName: string]: ExtractedColor[] } = {};
+        colors.forEach(color => {
+            if (!layerGroups[color.layerName]) {
+                layerGroups[color.layerName] = [];
+            }
+            layerGroups[color.layerName].push(color);
+        });
+
+        // 各レイヤーのLayerColorを作成
+        const layers: LayerColor[] = Object.entries(layerGroups).map(([layerName, layerColors]) => ({
+            id: generateId(),
+            layerName,
+            targets: layerColors.map(c => ({
+                path: c.path,
+                layerName: c.layerName,
+                shapeName: c.shapeName,
+            })),
+            original: [...layerColors[0].color],
+            current: [...layerColors[0].color],
+            type: layerColors[0].type,
+            groupId,
+        }));
+
+        colorGroups.push({
+            id: groupId,
+            originalColor: [...firstColor.color],
+            type: firstColor.type,
+            layers,
+            isExpanded: false,
+        });
+    });
+
+    return colorGroups;
+}
+

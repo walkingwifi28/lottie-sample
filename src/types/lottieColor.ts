@@ -64,3 +64,39 @@ export interface HSLColor {
  * Lottie形式の色 (0-1)
  */
 export type LottieColorArray = [number, number, number] | [number, number, number, number];
+
+/**
+ * レイヤー単位の色情報（個別編集用）
+ */
+export interface LayerColor {
+    /** ユニークID（レイヤー単位） */
+    id: string;
+    /** レイヤー名 */
+    layerName: string;
+    /** このレイヤー内での色の適用先リスト */
+    targets: TargetLocation[];
+    /** 元の色 [r, g, b] or [r, g, b, a] (0-1形式) */
+    original: number[];
+    /** 現在の色 */
+    current: number[];
+    /** 色のタイプ */
+    type: 'fill' | 'stroke' | 'solid';
+    /** 親グループのID */
+    groupId: string;
+}
+
+/**
+ * 色グループ（同じ色をまとめたもの）
+ */
+export interface ColorGroup {
+    /** グループのユニークID */
+    id: string;
+    /** グループの元の色 */
+    originalColor: number[];
+    /** 色のタイプ */
+    type: 'fill' | 'stroke' | 'solid';
+    /** このグループに含まれるレイヤー単位の色 */
+    layers: LayerColor[];
+    /** 展開状態（UI用） */
+    isExpanded?: boolean;
+}
