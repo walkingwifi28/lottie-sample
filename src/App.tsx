@@ -5,6 +5,7 @@ import { ColorEditorV2 } from './components/ColorEditor';
 import { useLottieFile } from './hooks/useLottieFile';
 import { useLottieColorGroups } from './hooks/useLottieColorGroups';
 import './App.css';
+import './utils/font.css';
 
 function App() {
   const { fileData, error, isLoading, handleFile, clearFile, updateSrcFromJson } = useLottieFile();
@@ -28,10 +29,19 @@ function App() {
     totalColorCount,
   } = useLottieColorGroups({ lottieJson: fileData?.rawJson ?? null });
 
+  // フォント読み込み完了フラグ
+  const [fontLoaded, setFontLoaded] = useState(false);
   // カラースライダーをドラッグ中かどうかを追跡
   const [isSliderDragging, setIsSliderDragging] = useState(false);
   // ドラッグ中に更新が保留されているかどうか
   const hasPendingUpdate = useRef(false);
+
+  // フォント読み込み完了を検知
+  useEffect(() => {
+    document.fonts.ready.then(() => {
+      setFontLoaded(true);
+    });
+  }, []);
 
   const handleSliderDragStart = useCallback(() => {
     setIsSliderDragging(true);
@@ -105,11 +115,15 @@ function App() {
         ) : (
           <div className="editor-layout">
             <div className="player-section">
-              <LottiePlayer
-                src={fileData.src}
-                title={fileData.name}
-                forcePause={isSliderDragging}
-              />
+              {fontLoaded ? (
+                <LottiePlayer
+                  src={fileData.src}
+                  title={fileData.name}
+                  forcePause={isSliderDragging}
+                />
+              ) : (
+                <div className="font-loading">フォント読み込み中...</div>
+              )}
               <button className="change-file-button" onClick={clearFile}>
                 別のファイルを選択
               </button>

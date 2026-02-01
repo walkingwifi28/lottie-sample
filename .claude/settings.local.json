@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell -Command:*)",
+      "Bash(powershell -File - <<'EOF'\n$json = Get-Content 'C:\\\\Users\\\\atush\\\\Downloads\\\\01_1.json' -Raw | ConvertFrom-Json\nif \\($json.chars\\) { \n    Write-Host \"chars count:\" $json.chars.Count\n    $json.chars[0..2] | ConvertTo-Json -Depth 3\n} else { \n    Write-Host \"chars is null or empty\" \n}\nEOF)",
+      "Bash(pnpm add:*)"
+    ]
+  }
+}

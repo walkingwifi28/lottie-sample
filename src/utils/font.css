@@ -1,0 +1,11 @@
+@font-face {
+    font-family: 'mplus-2p-medium';
+    /* LottieのfNameと一致させる */
+    src: url('../assets/fonts/MPLUS2-VariableFont_wght.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'NotoSansJP-Medium';
+    /* LottieのfNameと一致させる */
+    src: url('../assets/fonts/NotoSansJP-VariableFont_wght.ttf') format('truetype');
+}
